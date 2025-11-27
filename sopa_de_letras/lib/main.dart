@@ -264,7 +264,6 @@ class _GameScreenState extends State<GameScreen> {
       List<String> allWords = wordPool.toList()..shuffle();
       activeWords = allWords.take(config.wordCount).toList();
 
-      // Limpieza
       foundWords.clear();
       persistentLines.clear();
       currentLine = null;
