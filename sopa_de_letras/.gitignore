@@ -43,3 +43,32 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# Security & Secrets
+*.env
+*.env.*
+*.jks
+*.keystore
+*.pem
+*.key
+*.p12
+local.properties
+google-services.json
+GoogleService-Info.plist
+upload-keystore.jks
+
+# Temporary Scripts, Dumps & Diagnostics
+*.py
+*.ps1
+match_*.txt
+recovered_dict.txt
+full_dict_recovered.txt
+analysis.txt
+emulators_list.txt
+original_main.dart
+.gemini/
+.brain/
+task-*.log
+transcript*.jsonl
+compilacion.log
+

@@ -1,0 +1,41 @@
+# Secret & Sensitive Files
+*.env
+*.env.*
+*.jks
+*.keystore
+*.pem
+*.key
+*.p12
+*.cer
+*.crt
+*.pfx
+local.properties
+google-services.json
+GoogleService-Info.plist
+upload-keystore.jks
+
+# Temporary Scripts, Dumps & Recovery Files
+*.py
+*.ps1
+match_*.txt
+recovered_dict.txt
+full_dict_recovered.txt
+analysis.txt
+emulators_list.txt
+original_main.dart
+dump_matches.py
+search_arhuaco.py
+recover*.py
+recover*.ps1
+
+# Diagnostics, Logs & IDE Brain files
+.gemini/
+.brain/
+*.log
+task-*.log
+transcript*.jsonl
+compilacion.log
+
+# System files
+.DS_Store
+Thumbs.db

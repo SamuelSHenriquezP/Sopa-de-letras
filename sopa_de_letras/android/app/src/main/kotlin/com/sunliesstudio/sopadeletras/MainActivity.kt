@@ -1,5 +1,6 @@
-package com.example.sopa_de_letras
+﻿package com.sunliesstudio.sopadeletras
 
 import io.flutter.embedding.android.FlutterActivity
 
 class MainActivity : FlutterActivity()
+
