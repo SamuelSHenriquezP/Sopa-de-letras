@@ -1,4 +1,47 @@
-# Secret & Sensitive Files
+# ==========================================
+# Flutter / Dart Build & Package Artifacts
+# ==========================================
+build/
+**/build/
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.pub-cache/
+.pub/
+**/doc/api/
+coverage/
+
+# Platform-specific Ephemeral & Generated Files
+ios/Flutter/.last_build_id
+ios/Flutter/Flutter.framework
+ios/Flutter/Flutter.podspec
+ios/Flutter/Generated.xcconfig
+ios/Flutter/app.framework
+ios/Flutter/ephemeral/
+ios/Runner/GeneratedPluginRegistrant.h
+ios/Runner/GeneratedPluginRegistrant.m
+linux/flutter/ephemeral/
+macos/Flutter/ephemeral/
+windows/flutter/ephemeral/
+
+# ==========================================
+# Android Artifacts & Logs
+# ==========================================
+android/.gradle/
+android/app/build/
+android/build/
+android/captures/
+android/local.properties
+android/app/debug/
+android/app/profile/
+android/app/release/
+android/*.log
+android/hs_err_pid*.log
+android/replay_pid*.log
+
+# ==========================================
+# Security, Secrets, Keys & Credentials
+# ==========================================
 *.env
 *.env.*
 *.jks
@@ -9,33 +52,66 @@
 *.cer
 *.crt
 *.pfx
+*.asc
+key.properties
 local.properties
 google-services.json
 GoogleService-Info.plist
 upload-keystore.jks
 
-# Temporary Scripts, Dumps & Recovery Files
+# ==========================================
+# Binaries & Executables
+# ==========================================
+*.apk
+*.aab
+*.app
+*.ipa
+*.exe
+*.dll
+*.so
+*.dylib
+*.class
+*.o
+*.obj
+
+# ==========================================
+# Temporary Recovery Scripts, Dumps & Diagnostics
+# ==========================================
 *.py
 *.ps1
 match_*.txt
-recovered_dict.txt
+recovered_*.txt
 full_dict_recovered.txt
-analysis.txt
-emulators_list.txt
+analysis*.txt
+emulators_list*.txt
 original_main.dart
 dump_matches.py
 search_arhuaco.py
 recover*.py
 recover*.ps1
+compilacion.log
 
-# Diagnostics, Logs & IDE Brain files
-.gemini/
-.brain/
+# ==========================================
+# Logs & IDE Telemetry
+# ==========================================
 *.log
 task-*.log
 transcript*.jsonl
-compilacion.log
+.gemini/
+.brain/
 
-# System files
+# ==========================================
+# IDE & System Files
+# ==========================================
+.idea/
+*.iml
+*.ipr
+*.iws
+.history
 .DS_Store
 Thumbs.db
+ehthumbs.db
+Desktop.ini
+*.swp
+*.tmp
+*.bak

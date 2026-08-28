@@ -1,50 +1,47 @@
-# Miscellaneous
-*.class
-*.log
-*.pyc
-*.swp
-.DS_Store
-.atom/
-.build/
-.buildlog/
-.history
-.svn/
-.swiftpm/
-migrate_working_dir/
-
-# IntelliJ related
-*.iml
-*.ipr
-*.iws
-.idea/
-
-# The .vscode folder contains launch configuration and tasks you configure in
-# VS Code which you may wish to be included in version control, so this line
-# is commented out by default.
-#.vscode/
-
-# Flutter/Dart/Pub related
-**/doc/api/
-**/ios/Flutter/.last_build_id
+# ==========================================
+# Flutter / Dart Build & Package Artifacts
+# ==========================================
+build/
+**/build/
 .dart_tool/
+.flutter-plugins
 .flutter-plugins-dependencies
 .pub-cache/
 .pub/
-/build/
-/coverage/
+**/doc/api/
+coverage/
 
-# Symbolication related
-app.*.symbols
+# Platform-specific Ephemeral & Generated Files
+ios/Flutter/.last_build_id
+ios/Flutter/Flutter.framework
+ios/Flutter/Flutter.podspec
+ios/Flutter/Generated.xcconfig
+ios/Flutter/app.framework
+ios/Flutter/ephemeral/
+ios/Runner/GeneratedPluginRegistrant.h
+ios/Runner/GeneratedPluginRegistrant.m
+linux/flutter/ephemeral/
+macos/Flutter/ephemeral/
+windows/flutter/ephemeral/
 
-# Obfuscation related
-app.*.map.json
+# ==========================================
+# Android Artifacts & Logs
+# ==========================================
+android/.gradle/
+android/app/build/
+android/build/
+android/captures/
+android/local.properties
+android/app/debug/
+android/app/profile/
+android/app/release/
+android/*.log
+android/hs_err_pid*.log
+android/replay_pid*.log
 
-# Android Studio will place build artifacts here
-/android/app/debug
-/android/app/profile
-/android/app/release
-
-# Security & Secrets
+# ==========================================
+# Security, Secrets, Keys & Credentials
+# ==========================================
 *.env
 *.env.*
 *.jks
@@ -52,23 +49,69 @@ app.*.map.json
 *.pem
 *.key
 *.p12
+*.cer
+*.crt
+*.pfx
+*.asc
+key.properties
 local.properties
 google-services.json
 GoogleService-Info.plist
 upload-keystore.jks
 
-# Temporary Scripts, Dumps & Diagnostics
+# ==========================================
+# Binaries & Executables
+# ==========================================
+*.apk
+*.aab
+*.app
+*.ipa
+*.exe
+*.dll
+*.so
+*.dylib
+*.class
+*.o
+*.obj
+
+# ==========================================
+# Temporary Recovery Scripts, Dumps & Diagnostics
+# ==========================================
 *.py
 *.ps1
 match_*.txt
-recovered_dict.txt
+recovered_*.txt
 full_dict_recovered.txt
-analysis.txt
-emulators_list.txt
+analysis*.txt
+emulators_list*.txt
 original_main.dart
-.gemini/
-.brain/
-task-*.log
-transcript*.jsonl
+dump_matches.py
+search_arhuaco.py
+recover*.py
+recover*.ps1
 compilacion.log
 
+# ==========================================
+# Logs & IDE Telemetry
+# ==========================================
+*.log
+task-*.log
+transcript*.jsonl
+.gemini/
+.brain/
+
+# ==========================================
+# IDE & System Files
+# ==========================================
+.idea/
+*.iml
+*.ipr
+*.iws
+.history
+.DS_Store
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+*.swp
+*.tmp
+*.bak
