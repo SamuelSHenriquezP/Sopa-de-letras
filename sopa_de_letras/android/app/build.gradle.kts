@@ -1,4 +1,4 @@
-﻿plugins {
+plugins {
     id("com.android.application")
     id("kotlin-android")
     // El plugin de Flutter es OBLIGATORIO para que funcionen las variables 'flutter.'
