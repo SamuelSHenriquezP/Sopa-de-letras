@@ -61,7 +61,7 @@ class SopaSeniorAppState extends State<SopaSeniorApp>
   Future<void> _loadSettings() async {
     final prefs = await SharedPreferences.getInstance();
     setState(() {
-      _themeIndex = prefs.getInt('theme_index') ?? 0;
+      _themeIndex = (prefs.getInt('theme_index') ?? 0).clamp(0, myThemes.length - 1);
       _vibrationEnabled = prefs.getBool('vibration') ?? true;
       _isPro = prefs.getBool('is_pro') ?? false;
       _difficulty = prefs.getInt('difficulty') ?? 0;
@@ -131,6 +131,7 @@ class SopaSeniorAppState extends State<SopaSeniorApp>
   }
 
   bool get isPro => _isPro;
+  int get themeIndex => _themeIndex;
   int get difficulty => _difficulty;
   bool get vibrationEnabled => _vibrationEnabled;
   

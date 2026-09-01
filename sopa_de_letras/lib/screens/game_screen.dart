@@ -11,6 +11,7 @@ import '../models/word_line.dart';
 import '../services/ad_manager.dart';
 import '../services/audio_manager.dart';
 import '../widgets/line_painter.dart';
+import '../widgets/fun_effects.dart';
 
 class GameScreen extends StatefulWidget {
   final int level;
@@ -49,6 +50,7 @@ class _GameScreenState extends State<GameScreen>
   bool isPro = false;
   Timer? _gameTimer;
   int _secondsElapsed = 0;
+  String? _currentFloatingMessage;
 
   @override
   void initState() {
@@ -370,8 +372,12 @@ class _GameScreenState extends State<GameScreen>
       showDialog(
         context: context,
         barrierDismissible: false,
-        builder: (ctx) => AlertDialog(
-          backgroundColor: colors.surface,
+        builder: (ctx) => Stack(
+          alignment: Alignment.center,
+          children: [
+            const ConfettiWidgetOverlay(),
+            AlertDialog(
+              backgroundColor: colors.surface,
           title: const Icon(
             Icons.local_fire_department_rounded,
             size: 70,
@@ -452,8 +458,10 @@ class _GameScreenState extends State<GameScreen>
             ),
           ],
         ),
-      );
-      return;
+      ],
+    ),
+  );
+  return;
     }
 
     _saveProgress();
@@ -470,8 +478,12 @@ class _GameScreenState extends State<GameScreen>
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (ctx) => AlertDialog(
-        backgroundColor: colors.surface,
+      builder: (ctx) => Stack(
+        alignment: Alignment.center,
+        children: [
+          const ConfettiWidgetOverlay(),
+          AlertDialog(
+            backgroundColor: colors.surface,
         title: Icon(
           Icons.emoji_events_rounded,
           size: 70,
@@ -588,7 +600,9 @@ class _GameScreenState extends State<GameScreen>
           ),
         ],
       ),
-    );
+    ],
+  ),
+);
   }
 
   int _idx(Offset p, Size s) {
@@ -645,8 +659,21 @@ class _GameScreenState extends State<GameScreen>
       if (match != null) {
         SopaSeniorApp.of(context)?.vibrate(heavy: true);
         AudioManager.playWordFound();
+        final funPhrases = [
+          "¡Eso, parce! 🔥",
+          "¡Muy teso! 💪",
+          "¡De una! ✨",
+          "¡Excelente! 😎",
+          "¡Qué vista! 👁️",
+          "¡A lo bien! 🇨🇴",
+          "¡Buena esa! ⚡",
+          "¡La romdiste! 🚀",
+        ];
+        String phrase = funPhrases[Random().nextInt(funPhrases.length)];
+
         setState(() {
           foundWords.add(match!);
+          _currentFloatingMessage = phrase;
           persistentLines.add(
             WordLine(
               _center(startIndex!, s),
@@ -1017,6 +1044,17 @@ class _GameScreenState extends State<GameScreen>
                   ),
                 ],
               ),
+              if (_currentFloatingMessage != null)
+                Center(
+                  child: FloatingWordPopup(
+                    message: _currentFloatingMessage!,
+                    onComplete: () {
+                      if (mounted) {
+                        setState(() => _currentFloatingMessage = null);
+                      }
+                    },
+                  ),
+                ),
             ],
           ),
         ),

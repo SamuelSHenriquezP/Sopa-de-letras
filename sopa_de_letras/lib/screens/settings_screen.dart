@@ -68,38 +68,46 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     children: List.generate(myThemes.length, (index) {
                       final itemTheme = myThemes[index];
                       bool isSelected =
-                          theme.scaffoldBackgroundColor == itemTheme.background;
+                          (appState?.themeIndex ?? 0) == index;
                       return GestureDetector(
                         onTap: () {
                           appState?.changeTheme(index);
                         },
                         child: Column(
                           children: [
-                            Container(
-                              width: 60,
-                              height: 60,
-                              decoration: BoxDecoration(
-                                color: itemTheme.background,
-                                shape: BoxShape.circle,
-                                border: Border.all(
-                                  color: isSelected
-                                      ? itemTheme.primary
-                                      : Colors.grey.withValues(alpha: 0.5),
-                                  width: isSelected ? 4 : 2,
-                                ),
-                                boxShadow: const [
-                                  BoxShadow(
-                                    color: Colors.black12,
-                                    blurRadius: 5,
+                            AnimatedScale(
+                              scale: isSelected ? 1.15 : 1.0,
+                              duration: const Duration(milliseconds: 300),
+                              curve: Curves.elasticOut,
+                              child: Container(
+                                width: 60,
+                                height: 60,
+                                decoration: BoxDecoration(
+                                  color: itemTheme.background,
+                                  shape: BoxShape.circle,
+                                  border: Border.all(
+                                    color: isSelected
+                                        ? itemTheme.primary
+                                        : Colors.grey.withValues(alpha: 0.5),
+                                    width: isSelected ? 4 : 2,
                                   ),
-                                ],
-                              ),
-                              child: Center(
-                                child: Text(
-                                  "Aa",
-                                  style: TextStyle(
-                                    color: itemTheme.text,
-                                    fontWeight: FontWeight.bold,
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: isSelected
+                                          ? itemTheme.primary.withValues(alpha: 0.3)
+                                          : Colors.black12,
+                                      blurRadius: isSelected ? 10 : 5,
+                                      spreadRadius: isSelected ? 2 : 0,
+                                    ),
+                                  ],
+                                ),
+                                child: Center(
+                                  child: Text(
+                                    "Aa",
+                                    style: TextStyle(
+                                      color: itemTheme.text,
+                                      fontWeight: FontWeight.bold,
+                                    ),
                                   ),
                                 ),
                               ),
@@ -274,6 +282,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
               final prefs = await SharedPreferences.getInstance();
               await prefs.remove('max_level');
               await prefs.remove('hints');
+              await prefs.remove('daily_streak_count');
+              await prefs.remove('daily_last_completed_date');
+              await prefs.remove('games_played_count');
               if (!context.mounted) return;
               Navigator.pop(ctx);
               ScaffoldMessenger.of(context).showSnackBar(

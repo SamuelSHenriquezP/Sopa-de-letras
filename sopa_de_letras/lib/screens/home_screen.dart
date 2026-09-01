@@ -7,6 +7,7 @@ import 'dictionary_screen.dart';
 import 'game_screen.dart';
 import 'levels_screen.dart';
 import 'settings_screen.dart';
+import '../widgets/fun_effects.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -33,12 +34,19 @@ class _HomeScreenState extends State<HomeScreen> {
     final now = DateTime.now();
     String todayStr =
         "${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}";
+    final yesterday = now.subtract(const Duration(days: 1));
+    String yesterdayStr =
+        "${yesterday.year}-${yesterday.month.toString().padLeft(2, '0')}-${yesterday.day.toString().padLeft(2, '0')}";
     String? lastCompletedDate = prefs.getString('daily_last_completed_date');
+    int savedStreak = prefs.getInt('daily_streak_count') ?? 0;
+    if (lastCompletedDate != todayStr && lastCompletedDate != yesterdayStr) {
+      savedStreak = 0;
+    }
 
     setState(() {
       maxUnlockedLevel = prefs.getInt('max_level') ?? 1;
       availableHints = prefs.getInt('hints') ?? 5;
-      dailyStreak = prefs.getInt('daily_streak_count') ?? 0;
+      dailyStreak = savedStreak;
       isDailyCompletedToday = (lastCompletedDate == todayStr);
       isLoading = false;
     });
@@ -50,13 +58,20 @@ class _HomeScreenState extends State<HomeScreen> {
     final now = DateTime.now();
     String todayStr =
         "${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}";
+    final yesterday = now.subtract(const Duration(days: 1));
+    String yesterdayStr =
+        "${yesterday.year}-${yesterday.month.toString().padLeft(2, '0')}-${yesterday.day.toString().padLeft(2, '0')}";
     String? lastCompletedDate = prefs.getString('daily_last_completed_date');
+    int savedStreak = prefs.getInt('daily_streak_count') ?? 0;
+    if (lastCompletedDate != todayStr && lastCompletedDate != yesterdayStr) {
+      savedStreak = 0;
+    }
 
     if (mounted) {
       setState(() {
         availableHints = prefs.getInt('hints') ?? 5;
         maxUnlockedLevel = prefs.getInt('max_level') ?? 1;
-        dailyStreak = prefs.getInt('daily_streak_count') ?? 0;
+        dailyStreak = savedStreak;
         isDailyCompletedToday = (lastCompletedDate == todayStr);
       });
     }
@@ -418,8 +433,10 @@ class _HomeScreenState extends State<HomeScreen> {
                 const SizedBox(height: 16),
 
                 // BOTÓN DE NIVELES PRINCIPAL
-                Transform.scale(
-                  scale: 1.05,
+                PulsingWidget(
+                  minScale: 0.98,
+                  maxScale: 1.06,
+                  duration: const Duration(milliseconds: 1100),
                   child: FilledButton.icon(
                     onPressed: () => _launchGame(maxUnlockedLevel),
                     style: FilledButton.styleFrom(
