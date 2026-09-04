@@ -48,6 +48,7 @@ class _GameScreenState extends State<GameScreen>
   BannerAd? _bannerAd;
   bool _isBannerLoaded = false;
   bool isPro = false;
+  bool _hasShown5MinInactivityPrompt = false;
   Timer? _gameTimer;
   int _secondsElapsed = 0;
   String? _currentFloatingMessage;
@@ -177,6 +178,103 @@ class _GameScreenState extends State<GameScreen>
     );
   }
 
+  void _show5MinHintDialog() {
+    if (!mounted) return;
+    final colors = Theme.of(context).colorScheme;
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: colors.surface,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(24),
+        ),
+        title: Column(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: colors.primary.withValues(alpha: 0.1),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                Icons.lightbulb_rounded,
+                size: 40,
+                color: colors.primary,
+              ),
+            ),
+            const SizedBox(height: 12),
+            Text(
+              "¿Necesitas ayuda?",
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: colors.onSurface,
+              ),
+            ),
+          ],
+        ),
+        content: Text(
+          "Llevas 5 minutos en este nivel.\n¿Quieres ver un video corto para obtener 3 pistas extra?",
+          style: TextStyle(
+            fontSize: 14,
+            color: colors.onSurface.withValues(alpha: 0.8),
+          ),
+          textAlign: TextAlign.center,
+        ),
+        actionsPadding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+        actions: [
+          Row(
+            children: [
+              Expanded(
+                child: TextButton(
+                  onPressed: () => Navigator.pop(ctx),
+                  child: Text(
+                    "No, gracias",
+                    style: TextStyle(
+                      color: colors.onSurface.withValues(alpha: 0.6),
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: FilledButton.icon(
+                  icon: const Icon(Icons.play_arrow_rounded, size: 18),
+                  label: const Text(
+                    "Ver Anuncio",
+                    style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
+                  ),
+                  style: FilledButton.styleFrom(
+                    backgroundColor: colors.secondary,
+                    padding: const EdgeInsets.symmetric(vertical: 10),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                  ),
+                  onPressed: () {
+                    Navigator.pop(ctx);
+                    _adManager.showRewarded(() async {
+                      final prefs = await SharedPreferences.getInstance();
+                      setState(() {
+                        hints += 3;
+                      });
+                      await prefs.setInt('hints', hints);
+                      if (!mounted) return;
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text("¡+3 Pistas conseguidas!")),
+                      );
+                    });
+                  },
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
   void _flashHint() {
     hintTimer?.cancel();
     int? targetIndex = hintedIndex;
@@ -197,12 +295,22 @@ class _GameScreenState extends State<GameScreen>
     _gameTimer?.cancel();
 
     final int diff = SopaSeniorApp.of(context)?.difficulty ?? 0;
+    _secondsElapsed = 0;
+    _hasShown5MinInactivityPrompt = false;
+
     final newTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
-      if (mounted) setState(() => _secondsElapsed++);
+      if (mounted) {
+        setState(() => _secondsElapsed++);
+        if (_secondsElapsed >= 300 && !_hasShown5MinInactivityPrompt) {
+          _hasShown5MinInactivityPrompt = true;
+          if (foundWords.length < activeWords.length) {
+            _show5MinHintDialog();
+          }
+        }
+      }
     });
 
     setState(() {
-      _secondsElapsed = 0;
       _gameTimer = newTimer;
 
       if (widget.isDailyChallenge) {
@@ -378,90 +486,145 @@ class _GameScreenState extends State<GameScreen>
             const ConfettiWidgetOverlay(),
             AlertDialog(
               backgroundColor: colors.surface,
-          title: const Icon(
-            Icons.local_fire_department_rounded,
-            size: 70,
-            color: Colors.deepOrange,
-          ),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                "¡RETO DIARIO COMPLETADO!",
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.w900,
-                  color: colors.onSurface,
-                ),
-                textAlign: TextAlign.center,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(24),
               ),
-              const SizedBox(height: 10),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                decoration: BoxDecoration(
-                  color: Colors.deepOrange.withValues(alpha: 0.15),
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: Colors.deepOrange),
+              contentPadding: const EdgeInsets.fromLTRB(20, 24, 20, 16),
+              title: Center(
+                child: Container(
+                  padding: const EdgeInsets.all(14),
+                  decoration: BoxDecoration(
+                    color: colors.primary.withValues(alpha: 0.1),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    Icons.local_fire_department_rounded,
+                    size: 36,
+                    color: colors.primary,
+                  ),
                 ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const Icon(Icons.local_fire_department, color: Colors.deepOrange),
-                    const SizedBox(width: 6),
-                    Text(
-                      "Racha: $streak días seguidos",
-                      style: const TextStyle(
-                        fontWeight: FontWeight.bold,
-                        color: Colors.deepOrange,
-                        fontSize: 16,
+              ),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    "¡Reto Diario Completado!",
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: colors.onSurface,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 6),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 4,
+                    ),
+                    decoration: BoxDecoration(
+                      color: colors.onSurface.withValues(alpha: 0.06),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Text(
+                      "⏱ Tiempo: ${(_secondsElapsed ~/ 60).toString().padLeft(2, '0')}:${(_secondsElapsed % 60).toString().padLeft(2, '0')}",
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                        color: colors.onSurface.withValues(alpha: 0.7),
                       ),
                     ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 15),
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: colors.secondary.withValues(alpha: 0.15),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(Icons.lightbulb, color: colors.secondary),
-                    const SizedBox(width: 8),
-                    const Text(
-                      "¡+3 Pistas otorgadas!",
-                      style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 16),
+                  Container(
+                    padding: const EdgeInsets.all(14),
+                    decoration: BoxDecoration(
+                      color: colors.primary.withValues(alpha: 0.08),
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(
+                        color: colors.primary.withValues(alpha: 0.15),
+                      ),
                     ),
-                  ],
+                    child: Column(
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              Icons.local_fire_department_rounded,
+                              size: 18,
+                              color: colors.secondary,
+                            ),
+                            const SizedBox(width: 6),
+                            Text(
+                              "Racha: $streak días seguidos",
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                color: colors.secondary,
+                                fontSize: 14,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 8),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              Icons.lightbulb_rounded,
+                              size: 18,
+                              color: colors.primary,
+                            ),
+                            const SizedBox(width: 6),
+                            Text(
+                              "¡+3 Pistas otorgadas!",
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 13,
+                                color: colors.primary,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              actions: [
+                Center(
+                  child: FilledButton(
+                    onPressed: () {
+                      Navigator.pop(ctx);
+                      _adManager.showInterstitial(isPro, () {
+                        Navigator.pop(context);
+                      });
+                    },
+                    style: FilledButton.styleFrom(
+                      backgroundColor: colors.primary,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 24,
+                        vertical: 10,
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                    ),
+                    child: const Text(
+                      "Volver al Menú",
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
                 ),
-              ),
-              const SizedBox(height: 10),
-              Text(
-                "Tiempo: ${(_secondsElapsed ~/ 60).toString().padLeft(2, '0')}:${(_secondsElapsed % 60).toString().padLeft(2, '0')}",
-                style: TextStyle(fontSize: 14, color: colors.onSurface.withValues(alpha: 0.7)),
-              ),
-            ],
-          ),
-          actions: [
-            FilledButton(
-              onPressed: () {
-                Navigator.pop(ctx);
-                _adManager.showInterstitial(isPro, () {
-                  Navigator.pop(context);
-                });
-              },
-              style: FilledButton.styleFrom(backgroundColor: Colors.deepOrange),
-              child: const Text("Volver al Menú", style: TextStyle(color: Colors.white)),
+              ],
             ),
           ],
         ),
-      ],
-    ),
-  );
-  return;
+      );
+      return;
     }
 
     _saveProgress();
@@ -484,125 +647,185 @@ class _GameScreenState extends State<GameScreen>
           const ConfettiWidgetOverlay(),
           AlertDialog(
             backgroundColor: colors.surface,
-        title: Icon(
-          Icons.emoji_events_rounded,
-          size: 70,
-          color: colors.secondary,
-        ),
-        content: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                "¡Nivel Completado!",
-                style: TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                  color: colors.onSurface,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(24),
+            ),
+            contentPadding: const EdgeInsets.fromLTRB(20, 24, 20, 16),
+            title: Center(
+              child: Container(
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  color: colors.primary.withValues(alpha: 0.1),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  Icons.emoji_events_rounded,
+                  size: 36,
+                  color: colors.primary,
                 ),
               ),
-              const SizedBox(height: 5),
-              Text(
-                "Tiempo: ${(_secondsElapsed ~/ 60).toString().padLeft(2, '0')}:${(_secondsElapsed % 60).toString().padLeft(2, '0')}",
-                style: TextStyle(fontSize: 16, color: colors.onSurface.withValues(alpha: 0.7), fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 10),
-              Text(
-                motivation,
-                style: TextStyle(
-                  fontSize: 18,
-                  color: Colors.green.shade700,
-                  fontWeight: FontWeight.bold,
-                ),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 20),
-              if (unlockedWord != null) ...[
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: colors.primary.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(10),
+            ),
+            content: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    "¡Nivel Completado!",
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: colors.onSurface,
+                    ),
+                    textAlign: TextAlign.center,
                   ),
-                  child: Column(
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
+                  const SizedBox(height: 6),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 4,
+                    ),
+                    decoration: BoxDecoration(
+                      color: colors.onSurface.withValues(alpha: 0.06),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Text(
+                      "⏱ Tiempo: ${(_secondsElapsed ~/ 60).toString().padLeft(2, '0')}:${(_secondsElapsed % 60).toString().padLeft(2, '0')}",
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                        color: colors.onSurface.withValues(alpha: 0.7),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 14),
+                  Text(
+                    motivation,
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: colors.primary,
+                      fontWeight: FontWeight.w600,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 14),
+                  if (unlockedWord != null) ...[
+                    Container(
+                      padding: const EdgeInsets.all(14),
+                      decoration: BoxDecoration(
+                        color: colors.primary.withValues(alpha: 0.08),
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(
+                          color: colors.primary.withValues(alpha: 0.15),
+                        ),
+                      ),
+                      child: Column(
                         children: [
-                          Icon(
-                            Icons.menu_book,
-                            size: 20,
-                            color: colors.primary,
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                Icons.menu_book_rounded,
+                                size: 16,
+                                color: colors.primary,
+                              ),
+                              const SizedBox(width: 6),
+                              const Text(
+                                "DICCIONARIO DESBLOQUEADO",
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.bold,
+                                  letterSpacing: 0.5,
+                                ),
+                              ),
+                            ],
                           ),
-                          const SizedBox(width: 8),
-                          const Text(
-                            "DICCIONARIO DESBLOQUEADO",
+                          const SizedBox(height: 6),
+                          Text(
+                            unlockedWord,
                             style: TextStyle(
-                              fontSize: 12,
+                              fontSize: 18,
                               fontWeight: FontWeight.bold,
+                              color: colors.primary,
                             ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            unlockedMeaning!,
+                            style: TextStyle(
+                              fontSize: 13,
+                              color: colors.onSurface,
+                            ),
+                            textAlign: TextAlign.center,
                           ),
                         ],
                       ),
-                      const SizedBox(height: 5),
-                      Text(
-                        unlockedWord,
-                        style: TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                          color: colors.primary,
-                        ),
+                    ),
+                  ] else
+                    Text(
+                      "Has desbloqueado todo el diccionario.",
+                      style: TextStyle(
+                        fontStyle: FontStyle.italic,
+                        fontSize: 13,
+                        color: colors.onSurface.withValues(alpha: 0.5),
                       ),
-                      const SizedBox(height: 5),
-                      Text(
-                        unlockedMeaning!,
-                        style: TextStyle(fontSize: 14, color: colors.onSurface),
-                        textAlign: TextAlign.center,
-                      ),
-                    ],
-                  ),
-                ),
-              ] else
-                const Text(
-                  "Has desbloqueado todo el diccionario.",
-                  style: TextStyle(
-                    fontStyle: FontStyle.italic,
-                    color: Colors.grey,
-                  ),
-                ),
-            ],
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () {
-              Navigator.pop(ctx);
-              Navigator.pop(context);
-            },
-            child: Text("Menú", style: TextStyle(color: colors.primary)),
-          ),
-          FilledButton(
-            onPressed: () {
-              Navigator.pop(ctx);
-              _adManager.showInterstitial(isPro, () {
-                setState(() {
-                  currentLevel++;
-                  _initializeLevel();
-                });
-                AudioManager.playGameMusic();
-              });
-            },
-            style: FilledButton.styleFrom(backgroundColor: Colors.green),
-            child: const Text(
-              "Siguiente",
-              style: TextStyle(color: Colors.white),
+                    ),
+                ],
+              ),
             ),
+            actions: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  TextButton(
+                    onPressed: () {
+                      Navigator.pop(ctx);
+                      Navigator.pop(context);
+                    },
+                    child: Text(
+                      "Menú",
+                      style: TextStyle(
+                        color: colors.onSurface.withValues(alpha: 0.7),
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  FilledButton(
+                    onPressed: () {
+                      Navigator.pop(ctx);
+                      _adManager.showInterstitial(isPro, () {
+                        setState(() {
+                          currentLevel++;
+                          _initializeLevel();
+                        });
+                        AudioManager.playGameMusic();
+                      });
+                    },
+                    style: FilledButton.styleFrom(
+                      backgroundColor: colors.primary,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 20,
+                        vertical: 10,
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                    ),
+                    child: const Text(
+                      "Siguiente Nivel",
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
           ),
         ],
       ),
-    ],
-  ),
-);
+    );
   }
 
   int _idx(Offset p, Size s) {
@@ -720,54 +943,41 @@ class _GameScreenState extends State<GameScreen>
       child: Scaffold(
         appBar: AppBar(
           titleSpacing: 0,
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back_ios_new_rounded),
+            onPressed: () => Navigator.pop(context),
+          ),
           title: Row(
+            mainAxisSize: MainAxisSize.min,
             children: [
               Text(
-                widget.isDailyChallenge ? "Reto Diario" : "Nivel $currentLevel",
+                widget.isDailyChallenge ? "Reto" : "Niv. $currentLevel",
                 style: TextStyle(
-                  fontSize: 18,
+                  fontSize: 16,
                   fontWeight: FontWeight.bold,
                   color: colors.onSurface,
                 ),
               ),
-              const SizedBox(width: 8),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                decoration: BoxDecoration(
-                  color: widget.isDailyChallenge
-                      ? Colors.deepOrange.withValues(alpha: 0.15)
-                      : colors.primary.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Text(
-                  levelTitle,
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: widget.isDailyChallenge ? Colors.deepOrange : colors.primary,
-                    fontWeight: FontWeight.bold,
+              const SizedBox(width: 6),
+              Flexible(
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                  decoration: BoxDecoration(
+                    color: widget.isDailyChallenge
+                        ? Colors.deepOrange.withValues(alpha: 0.15)
+                        : colors.primary.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(10),
                   ),
-                ),
-              ),
-              const Spacer(),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                decoration: BoxDecoration(
-                  color: colors.secondary.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Row(
-                  children: [
-                    Icon(Icons.timer, size: 16, color: colors.secondary),
-                    const SizedBox(width: 4),
-                    Text(
-                      "${(_secondsElapsed ~/ 60).toString().padLeft(2, '0')}:${(_secondsElapsed % 60).toString().padLeft(2, '0')}",
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.bold,
-                        color: colors.secondary,
-                      ),
+                  child: Text(
+                    levelTitle,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      fontSize: 11,
+                      color: widget.isDailyChallenge ? Colors.deepOrange : colors.primary,
+                      fontWeight: FontWeight.bold,
                     ),
-                  ],
+                  ),
                 ),
               ),
             ],
@@ -775,22 +985,51 @@ class _GameScreenState extends State<GameScreen>
           centerTitle: false,
           backgroundColor: Colors.transparent,
           elevation: 0,
-          leading: IconButton(
-            icon: const Icon(Icons.arrow_back_ios_new_rounded),
-            onPressed: () => Navigator.pop(context),
-          ),
           actions: [
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: Center(
-                child: Text(
-                  "${foundWords.length}/${activeWords.length}",
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.green.shade700,
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              decoration: BoxDecoration(
+                color: colors.secondary.withValues(alpha: 0.12),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.timer_outlined, size: 15, color: colors.secondary),
+                  const SizedBox(width: 4),
+                  Text(
+                    "${(_secondsElapsed ~/ 60).toString().padLeft(2, '0')}:${(_secondsElapsed % 60).toString().padLeft(2, '0')}",
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.bold,
+                      color: colors.secondary,
+                    ),
                   ),
-                ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 6),
+            Container(
+              margin: const EdgeInsets.only(right: 12),
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              decoration: BoxDecoration(
+                color: Colors.green.withValues(alpha: 0.12),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.check_circle_outline_rounded, size: 15, color: Colors.green.shade700),
+                  const SizedBox(width: 4),
+                  Text(
+                    "${foundWords.length}/${activeWords.length}",
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.green.shade700,
+                    ),
+                  ),
+                ],
               ),
             ),
           ],

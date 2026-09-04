@@ -268,134 +268,132 @@ class _HomeScreenState extends State<HomeScreen> {
 
                 const SizedBox(height: 20),
 
-                // CARD DEL RETO DIARIO
+                // CARD DEL RETO DIARIO (Compact, sleek & integrated)
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 24.0),
                   child: Card(
-                    elevation: 3,
+                    elevation: 0,
+                    color: colors.primary.withValues(alpha: 0.05),
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(20),
+                      borderRadius: BorderRadius.circular(16),
                       side: BorderSide(
-                        color: isDailyCompletedToday
-                            ? Colors.green.withValues(alpha: 0.5)
-                            : Colors.deepOrange.withValues(alpha: 0.5),
-                        width: 2,
+                        color: colors.primary.withValues(alpha: 0.15),
                       ),
                     ),
                     child: Padding(
-                      padding: const EdgeInsets.all(16.0),
-                      child: Column(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16.0,
+                        vertical: 12.0,
+                      ),
+                      child: Row(
                         children: [
-                          Row(
-                            children: [
-                              Container(
-                                padding: const EdgeInsets.all(10),
-                                decoration: BoxDecoration(
-                                  color: isDailyCompletedToday
-                                      ? Colors.green.withValues(alpha: 0.15)
-                                      : Colors.deepOrange.withValues(alpha: 0.15),
-                                  shape: BoxShape.circle,
-                                ),
-                                child: Icon(
-                                  isDailyCompletedToday
-                                      ? Icons.check_circle_rounded
-                                      : Icons.local_fire_department_rounded,
-                                  color: isDailyCompletedToday
-                                      ? Colors.green
-                                      : Colors.deepOrange,
-                                  size: 28,
-                                ),
-                              ),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
+                          Container(
+                            padding: const EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              color: colors.primary.withValues(alpha: 0.1),
+                              shape: BoxShape.circle,
+                            ),
+                            child: Icon(
+                              isDailyCompletedToday
+                                  ? Icons.check_circle_rounded
+                                  : Icons.local_fire_department_rounded,
+                              color: colors.primary,
+                              size: 22,
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Row(
                                   children: [
                                     Text(
-                                      "RETO DIARIO",
+                                      "Reto Diario",
                                       style: TextStyle(
-                                        fontWeight: FontWeight.w900,
-                                        fontSize: 16,
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 15,
                                         color: colors.onSurface,
                                       ),
                                     ),
-                                    const SizedBox(height: 2),
-                                    Text(
-                                      isDailyCompletedToday
-                                          ? "¡Completado por hoy!"
-                                          : "Resuelve la sopa de hoy y gana +3 pistas",
-                                      style: TextStyle(
-                                        fontSize: 12,
-                                        color: colors.onSurface.withValues(
-                                          alpha: 0.7,
+                                    if (dailyStreak > 0) ...[
+                                      const SizedBox(width: 8),
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 6,
+                                          vertical: 2,
                                         ),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              if (dailyStreak > 0)
-                                Container(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 10,
-                                    vertical: 4,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: Colors.deepOrange.withValues(
-                                      alpha: 0.15,
-                                    ),
-                                    borderRadius: BorderRadius.circular(12),
-                                  ),
-                                  child: Row(
-                                    children: [
-                                      const Icon(
-                                        Icons.local_fire_department,
-                                        size: 16,
-                                        color: Colors.deepOrange,
-                                      ),
-                                      const SizedBox(width: 4),
-                                      Text(
-                                        "$dailyStreak",
-                                        style: const TextStyle(
-                                          fontWeight: FontWeight.bold,
-                                          color: Colors.deepOrange,
-                                          fontSize: 14,
+                                        decoration: BoxDecoration(
+                                          color: colors.secondary.withValues(
+                                            alpha: 0.12,
+                                          ),
+                                          borderRadius: BorderRadius.circular(8),
+                                        ),
+                                        child: Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            Icon(
+                                              Icons.local_fire_department_rounded,
+                                              size: 13,
+                                              color: colors.secondary,
+                                            ),
+                                            const SizedBox(width: 2),
+                                            Text(
+                                              "$dailyStreak",
+                                              style: TextStyle(
+                                                fontWeight: FontWeight.bold,
+                                                color: colors.secondary,
+                                                fontSize: 12,
+                                              ),
+                                            ),
+                                          ],
                                         ),
                                       ),
                                     ],
+                                  ],
+                                ),
+                                const SizedBox(height: 2),
+                                Text(
+                                  isDailyCompletedToday
+                                      ? "¡Completado por hoy!"
+                                      : "Sopa especial (+3 pistas)",
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: colors.onSurface.withValues(
+                                      alpha: 0.65,
+                                    ),
                                   ),
                                 ),
-                            ],
+                              ],
+                            ),
                           ),
-                          const SizedBox(height: 12),
-                          SizedBox(
-                            width: double.infinity,
-                            child: FilledButton.icon(
-                              onPressed: isDailyCompletedToday
-                                  ? null
-                                  : _launchDailyChallenge,
-                              style: FilledButton.styleFrom(
-                                backgroundColor: Colors.deepOrange,
-                                disabledBackgroundColor: Colors.grey.shade300,
-                                padding: const EdgeInsets.symmetric(vertical: 12),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
+                          const SizedBox(width: 8),
+                          FilledButton(
+                            onPressed: isDailyCompletedToday
+                                ? null
+                                : _launchDailyChallenge,
+                            style: FilledButton.styleFrom(
+                              elevation: 0,
+                              backgroundColor: colors.primary,
+                              disabledBackgroundColor:
+                                  colors.onSurface.withValues(alpha: 0.08),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                                vertical: 8,
                               ),
-                              icon: Icon(
-                                isDailyCompletedToday
-                                    ? Icons.task_alt
-                                    : Icons.play_arrow_rounded,
-                                color: Colors.white,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
                               ),
-                              label: Text(
-                                isDailyCompletedToday
-                                    ? "RETO COMPLETADO"
-                                    : "JUGAR RETO DIARIO",
-                                style: const TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.white,
-                                ),
+                            ),
+                            child: Text(
+                              isDailyCompletedToday ? "Listo" : "Jugar",
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 13,
+                                color: isDailyCompletedToday
+                                    ? colors.onSurface.withValues(alpha: 0.35)
+                                    : Colors.white,
                               ),
                             ),
                           ),

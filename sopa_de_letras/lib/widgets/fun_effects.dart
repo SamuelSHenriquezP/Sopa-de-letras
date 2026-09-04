@@ -54,7 +54,7 @@ class _PulsingWidgetState extends State<PulsingWidget>
   }
 }
 
-/// Floating encouragement popup when finding a word
+/// Floating encouragement popup when finding a word (styled with the active app theme)
 class FloatingWordPopup extends StatefulWidget {
   final String message;
   final VoidCallback onComplete;
@@ -81,13 +81,13 @@ class _FloatingWordPopupState extends State<FloatingWordPopup>
     super.initState();
     _controller = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 900),
+      duration: const Duration(milliseconds: 800),
     );
 
-    _scale = Tween<double>(begin: 0.3, end: 1.2).animate(
+    _scale = Tween<double>(begin: 0.8, end: 1.0).animate(
       CurvedAnimation(
         parent: _controller,
-        curve: const Interval(0.0, 0.4, curve: Curves.elasticOut),
+        curve: const Interval(0.0, 0.35, curve: Curves.easeOutCubic),
       ),
     );
 
@@ -99,8 +99,8 @@ class _FloatingWordPopupState extends State<FloatingWordPopup>
     );
 
     _offset = Tween<Offset>(
-      begin: const Offset(0, 0.2),
-      end: const Offset(0, -0.6),
+      begin: const Offset(0, 0.1),
+      end: const Offset(0, -0.4),
     ).animate(
       CurvedAnimation(
         parent: _controller,
@@ -119,6 +119,7 @@ class _FloatingWordPopupState extends State<FloatingWordPopup>
 
   @override
   Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
     return SlideTransition(
       position: _offset,
       child: FadeTransition(
@@ -128,36 +129,41 @@ class _FloatingWordPopupState extends State<FloatingWordPopup>
           child: Material(
             color: Colors.transparent,
             child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
               decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  colors: [Color(0xFFFF9800), Color(0xFFFF5722)],
+                gradient: LinearGradient(
+                  colors: [
+                    colors.primary,
+                    colors.secondary,
+                  ],
                 ),
-                borderRadius: BorderRadius.circular(30),
-                boxShadow: const [
+                borderRadius: BorderRadius.circular(25),
+                boxShadow: [
                   BoxShadow(
-                    color: Colors.black38,
-                    blurRadius: 15,
-                    offset: Offset(0, 5),
+                    color: colors.primary.withValues(alpha: 0.3),
+                    blurRadius: 10,
+                    offset: const Offset(0, 4),
                   ),
                 ],
               ),
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Icon(Icons.star_rounded, color: Colors.yellow, size: 28),
+                  Icon(Icons.auto_awesome_rounded,
+                      color: colors.onPrimary, size: 20),
                   const SizedBox(width: 8),
                   Text(
                     widget.message,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.w900,
-                      fontSize: 18,
-                      letterSpacing: 0.8,
+                    style: TextStyle(
+                      color: colors.onPrimary,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 15,
+                      letterSpacing: 0.4,
                     ),
                   ),
                   const SizedBox(width: 8),
-                  const Icon(Icons.star_rounded, color: Colors.yellow, size: 28),
+                  Icon(Icons.auto_awesome_rounded,
+                      color: colors.onPrimary, size: 20),
                 ],
               ),
             ),
@@ -168,7 +174,7 @@ class _FloatingWordPopupState extends State<FloatingWordPopup>
   }
 }
 
-/// Confetti burst animation for win dialogs or celebrations
+/// Theme-integrated particle cascade overlay for win celebrations
 class ConfettiWidgetOverlay extends StatefulWidget {
   const ConfettiWidgetOverlay({super.key});
 
@@ -187,11 +193,26 @@ class _ConfettiWidgetOverlayState extends State<ConfettiWidgetOverlay>
     super.initState();
     _controller = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 2500),
-    )..repeat();
+      duration: const Duration(milliseconds: 2200),
+    );
+    _controller.forward();
+  }
 
-    for (int i = 0; i < 40; i++) {
-      _particles.add(_Particle(_rand));
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_particles.isEmpty) {
+      final colors = Theme.of(context).colorScheme;
+      final palette = [
+        colors.primary,
+        colors.secondary,
+        colors.tertiary,
+        colors.primaryContainer,
+        colors.secondaryContainer,
+      ];
+      for (int i = 0; i < 28; i++) {
+        _particles.add(_Particle(_rand, palette));
+      }
     }
   }
 
@@ -224,22 +245,14 @@ class _Particle {
   late double size;
   late double rotation;
 
-  _Particle(Random rand) {
+  _Particle(Random rand, List<Color> palette) {
     x = rand.nextDouble();
-    y = rand.nextDouble() * 0.3; // Starts at top area
-    vx = (rand.nextDouble() - 0.5) * 0.4;
-    vy = rand.nextDouble() * 0.5 + 0.3;
-    size = rand.nextDouble() * 8 + 6;
+    y = rand.nextDouble() * 0.25;
+    vx = (rand.nextDouble() - 0.5) * 0.3;
+    vy = rand.nextDouble() * 0.4 + 0.35;
+    size = rand.nextDouble() * 6 + 5;
     rotation = rand.nextDouble() * pi * 2;
-    final colors = [
-      Colors.redAccent,
-      Colors.amber,
-      Colors.greenAccent,
-      Colors.lightBlueAccent,
-      Colors.purpleAccent,
-      Colors.orangeAccent,
-    ];
-    color = colors[rand.nextInt(colors.length)];
+    color = palette[rand.nextInt(palette.length)];
   }
 }
 
@@ -253,20 +266,21 @@ class _ConfettiPainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     for (var p in particles) {
       double px = (p.x + p.vx * progress) * size.width;
-      double py = ((p.y + p.vy * progress) % 1.0) * size.height;
+      double py = (p.y + p.vy * progress) * size.height;
+      double alpha = (1.0 - progress).clamp(0.0, 1.0) * 0.8;
 
       final paint = Paint()
-        ..color = p.color.withValues(alpha: 1.0 - (py / size.height) * 0.5)
+        ..color = p.color.withValues(alpha: alpha)
         ..style = PaintingStyle.fill;
 
       canvas.save();
       canvas.translate(px, py);
-      canvas.rotate(p.rotation + progress * pi * 4);
+      canvas.rotate(p.rotation + progress * pi * 3);
       canvas.drawRect(
         Rect.fromCenter(
           center: Offset.zero,
           width: p.size,
-          height: p.size * 0.6,
+          height: p.size * 0.65,
         ),
         paint,
       );

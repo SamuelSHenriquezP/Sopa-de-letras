@@ -70,7 +70,7 @@ class AudioManager {
       _fadeTimer?.cancel();
       if (_bgmPlayer.state == PlayerState.playing) await _bgmPlayer.stop();
       await _bgmPlayer.setVolume(0);
-      await _bgmPlayer.play(AssetSource('audio/Fondo - Sopa letras.wav'));
+      await _bgmPlayer.play(AssetSource('music/Fondo - Sopa letras.mp3'));
       double vol = 0;
       _fadeTimer = Timer.periodic(const Duration(milliseconds: 200), (timer) {
         vol += 0.025;
