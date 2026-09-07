@@ -141,7 +141,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             child: Column(
               children: [
                 SwitchListTile(
-                  title: Text("Música", style: bodyStyle),
+                  title: Text("Música de fondo", style: bodyStyle),
                   secondary: Icon(Icons.music_note, color: colors.primary),
                   value: AudioManager.isMusicOn,
                   activeThumbColor: colors.primary,
@@ -150,6 +150,117 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     setState(() {});
                   },
                 ),
+                if (AudioManager.isMusicOn) ...[
+                  const Divider(height: 1, indent: 16, endIndent: 16),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Icon(Icons.library_music_rounded, size: 16, color: colors.primary),
+                            const SizedBox(width: 6),
+                            Text(
+                              "BANDA SONORA DISPONIBLE (DESBLOQUEADA)",
+                              style: TextStyle(
+                                fontSize: 11,
+                                fontWeight: FontWeight.bold,
+                                color: colors.primary,
+                                letterSpacing: 0.5,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 8),
+                        ...List.generate(AudioManager.tracks.length, (index) {
+                          final track = AudioManager.tracks[index];
+                          final isSelected = AudioManager.selectedTrackIndex == index;
+                          return InkWell(
+                            borderRadius: BorderRadius.circular(10),
+                            onTap: () {
+                              AudioManager.setMusicTrack(index);
+                              setState(() {});
+                            },
+                            child: Container(
+                              margin: const EdgeInsets.symmetric(vertical: 4),
+                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                              decoration: BoxDecoration(
+                                color: isSelected
+                                    ? colors.primary.withValues(alpha: 0.12)
+                                    : Colors.transparent,
+                                borderRadius: BorderRadius.circular(10),
+                                border: Border.all(
+                                  color: isSelected
+                                      ? colors.primary.withValues(alpha: 0.5)
+                                      : colors.onSurface.withValues(alpha: 0.1),
+                                ),
+                              ),
+                              child: Row(
+                                children: [
+                                  Icon(
+                                    isSelected
+                                        ? Icons.play_circle_filled_rounded
+                                        : Icons.music_note_rounded,
+                                    color: isSelected ? colors.primary : colors.onSurface.withValues(alpha: 0.6),
+                                    size: 24,
+                                  ),
+                                  const SizedBox(width: 12),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          track.title,
+                                          style: TextStyle(
+                                            fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
+                                            color: isSelected ? colors.primary : colors.onSurface,
+                                            fontSize: 14,
+                                          ),
+                                        ),
+                                        const SizedBox(height: 2),
+                                        Text(
+                                          track.description,
+                                          style: TextStyle(
+                                            color: colors.onSurface.withValues(alpha: 0.65),
+                                            fontSize: 12,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  if (isSelected)
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                                      decoration: BoxDecoration(
+                                        color: colors.primary,
+                                        borderRadius: BorderRadius.circular(8),
+                                      ),
+                                      child: const Text(
+                                        "ACTIVA",
+                                        style: TextStyle(
+                                          color: Colors.white,
+                                          fontSize: 10,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    )
+                                  else
+                                    Icon(
+                                      Icons.lock_open_rounded,
+                                      size: 18,
+                                      color: Colors.green.shade600,
+                                    ),
+                                ],
+                              ),
+                            ),
+                          );
+                        }),
+                      ],
+                    ),
+                  ),
+                  const Divider(height: 1, indent: 16, endIndent: 16),
+                ],
                 SwitchListTile(
                   title: Text("Sonidos", style: bodyStyle),
                   secondary: Icon(Icons.volume_up, color: colors.primary),

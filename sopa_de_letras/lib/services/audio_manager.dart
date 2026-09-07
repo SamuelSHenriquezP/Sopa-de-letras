@@ -2,6 +2,20 @@ import 'dart:async';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+class MusicTrack {
+  final String id;
+  final String title;
+  final String description;
+  final String assetPath;
+
+  const MusicTrack({
+    required this.id,
+    required this.title,
+    required this.description,
+    required this.assetPath,
+  });
+}
+
 class AudioManager {
   static final AudioPlayer _bgmPlayer = AudioPlayer();
   static final AudioPlayer _clickPlayer = AudioPlayer();
@@ -13,10 +27,34 @@ class AudioManager {
   static String _currentTrack = '';
   static Timer? _fadeTimer;
 
+  static const List<MusicTrack> tracks = [
+    MusicTrack(
+      id: 'classic',
+      title: 'Sopa de Letras Clásica',
+      description: 'Melodía original alegre y relajante',
+      assetPath: 'music/Fondo - Sopa letras.mp3',
+    ),
+    MusicTrack(
+      id: 'brainwave',
+      title: 'Brainwave Puzzles',
+      description: 'Ritmo suave para agilidad mental',
+      assetPath: 'music/Brainwave Puzzles.mp3',
+    ),
+    MusicTrack(
+      id: 'focus',
+      title: 'Logic & Focus',
+      description: 'Ambiente tranquilo para máxima concentración',
+      assetPath: 'music/Logic & Focus.mp3',
+    ),
+  ];
+
+  static int _selectedTrackIndex = 0;
+
   static Future<void> init() async {
     final prefs = await SharedPreferences.getInstance();
     _musicOn = prefs.getBool('music_on') ?? true;
     _sfxOn = prefs.getBool('sfx_on') ?? true;
+    _selectedTrackIndex = (prefs.getInt('selected_music_track') ?? 0).clamp(0, tracks.length - 1);
 
     await _bgmPlayer.setReleaseMode(ReleaseMode.loop);
     await _bgmPlayer.setAudioContext(
@@ -64,13 +102,17 @@ class AudioManager {
     }
   }
 
-  static void playGameMusic() async {
+  static void playGameMusic({bool forceRestart = false}) async {
     _currentTrack = 'game';
     if (_musicOn) {
+      if (!forceRestart && _bgmPlayer.state == PlayerState.playing) {
+        return;
+      }
       _fadeTimer?.cancel();
       if (_bgmPlayer.state == PlayerState.playing) await _bgmPlayer.stop();
       await _bgmPlayer.setVolume(0);
-      await _bgmPlayer.play(AssetSource('music/Fondo - Sopa letras.mp3'));
+      final track = tracks[_selectedTrackIndex];
+      await _bgmPlayer.play(AssetSource(track.assetPath));
       double vol = 0;
       _fadeTimer = Timer.periodic(const Duration(milliseconds: 200), (timer) {
         vol += 0.025;
@@ -83,9 +125,24 @@ class AudioManager {
     }
   }
 
-  static void resumeMusic() {
-    if (_currentTrack == 'game') playGameMusic();
+  static void resumeMusic({bool forceRestart = false}) {
+    if (_currentTrack == 'game') {
+      playGameMusic(forceRestart: forceRestart);
+    }
   }
+
+  static void setMusicTrack(int index) async {
+    if (index < 0 || index >= tracks.length) return;
+    _selectedTrackIndex = index;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setInt('selected_music_track', index);
+    if (_musicOn) {
+      playGameMusic(forceRestart: true);
+    }
+  }
+
+  static int get selectedTrackIndex => _selectedTrackIndex;
+  static MusicTrack get currentTrack => tracks[_selectedTrackIndex];
 
   static void stopBGM() async {
     _fadeTimer?.cancel();
