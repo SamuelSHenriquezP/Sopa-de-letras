@@ -115,3 +115,7 @@ Desktop.ini
 *.swp
 *.tmp
 *.bak
+
+# Allow release APKs
+!release/
+!release/*.apk

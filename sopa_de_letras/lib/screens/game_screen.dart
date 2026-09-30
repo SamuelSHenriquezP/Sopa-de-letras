@@ -28,7 +28,7 @@ class GameScreen extends StatefulWidget {
 }
 
 class _GameScreenState extends State<GameScreen>
-    with SingleTickerProviderStateMixin {
+    with SingleTickerProviderStateMixin, WidgetsBindingObserver {
   late int currentLevel;
   late LevelConfig config;
   String levelTitle = "";
@@ -56,6 +56,7 @@ class _GameScreenState extends State<GameScreen>
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     currentLevel = widget.level;
     _adManager = AdManager();
     _loadHints();
@@ -63,6 +64,26 @@ class _GameScreenState extends State<GameScreen>
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _checkProStatusAndLoadAds();
     });
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.paused ||
+        state == AppLifecycleState.inactive ||
+        state == AppLifecycleState.hidden ||
+        state == AppLifecycleState.detached) {
+      _saveHintsSafe();
+      AudioManager.stopBGM();
+    } else if (state == AppLifecycleState.resumed) {
+      AudioManager.playGameMusic();
+    }
+  }
+
+  Future<void> _saveHintsSafe() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setInt('hints', hints);
+    } catch (_) {}
   }
 
   void _checkProStatusAndLoadAds() {
@@ -82,6 +103,8 @@ class _GameScreenState extends State<GameScreen>
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    _saveHintsSafe();
     hintTimer?.cancel();
     _gameTimer?.cancel();
     AudioManager.stopBGM();
