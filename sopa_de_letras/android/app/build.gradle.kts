@@ -1,8 +1,17 @@
-plugins {
+﻿plugins {
     id("com.android.application")
     id("kotlin-android")
     // El plugin de Flutter es OBLIGATORIO para que funcionen las variables 'flutter.'
     id("dev.flutter.flutter-gradle-plugin")
+}
+
+import java.util.Properties
+import java.io.FileInputStream
+
+val keystorePropertiesFile = rootProject.file("key.properties")
+val keystoreProperties = Properties()
+if (keystorePropertiesFile.exists()) {
+    keystoreProperties.load(FileInputStream(keystorePropertiesFile))
 }
 
 android {
@@ -29,18 +38,20 @@ android {
 
     signingConfigs {
         create("release") {
-            keyAlias = "upload"
-            keyPassword = "Ss84.597.280"
-            storeFile = file("upload-keystore.jks")
-            storePassword = "Ss84.597.280"
+            keyAlias = keystoreProperties.getProperty("keyAlias")
+            keyPassword = keystoreProperties.getProperty("keyPassword")
+            storeFile = keystoreProperties.getProperty("storeFile")?.let { file(it) }
+            storePassword = keystoreProperties.getProperty("storePassword")
         }
     }
 
     buildTypes {
         release {
-            signingConfig = signingConfigs.getByName("release")
-            isMinifyEnabled = false
-            isShrinkResources = false
+            signingConfig = if (keystorePropertiesFile.exists() && keystoreProperties.getProperty("storeFile") != null) {
+                signingConfigs.getByName("release")
+            } else {
+                signingConfigs.getByName("debug")
+            }
         }
     }
 }
@@ -48,3 +59,4 @@ android {
 flutter {
     source = "../.."
 }
+
